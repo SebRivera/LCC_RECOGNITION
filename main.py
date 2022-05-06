@@ -163,19 +163,20 @@ def main(id_folder, model, umbral):
                     posicion_cara: Todas las caras reconocidas en el frame, será un arreglo de indice 4, donde estará su posición (x,y) y su tamaño
                     persona_reconocida: Es una etiqueta con el nombre de la persona reconocida
                     """
+                    font = cv2.FONT_HERSHEY_SIMPLEX
                     for posicion_cara, _, persona_reconocida, distancia in zip(
                         cuadros_delimitadores, puntos_referencia, personas_reconocidas, distancias_personas_reconocidas
                     ):
-                        if posicion_cara[2] > 350:
+                        if posicion_cara[2] > 300 and posicion_cara[3] > 300:
                             if persona_reconocida is None:
                                 persona_reconocida = "Desconocido"
                                 print("Desconocido! No se pudo reconocer el rostro.")
                             else:
                                 print("Hola %s! Acuraccy: %1.4f" % (persona_reconocida, distancia))
-                            font = cv2.FONT_HERSHEY_SIMPLEX
                             #Una vez reconocido el rostro, se va a mostrar en la cámara: Su nombre, Un cuadrado identificado al rostro y un pequeño mensaje
+                            print(posicion_cara)
                             cv2.rectangle(frame, (posicion_cara[0], posicion_cara[1]), (posicion_cara[2], posicion_cara[3]), (0, 255, 0), 4)
-                            cv2.putText(frame, persona_reconocida, (posicion_cara[0], posicion_cara[2]-5), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
+                            cv2.putText(frame, persona_reconocida, (posicion_cara[0] + 15, posicion_cara[1]-5), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
                             
                             #Proceso de sonrisa
                             """
@@ -216,7 +217,7 @@ def main(id_folder, model, umbral):
                                 Esta solución es debido a que una persona cuando tenga su información lista, dejará de sonreír para poder leer
                                 o muchos fenoménos que pueden ocurrir, entonces, lo ideal es que la información desaparezca cuando la persona 
                                 deje de estar en el encuadre de la cámara.
-                            """
+                            
                             cara_detectada = frame[posicion_cara[0]:posicion_cara[0]+posicion_cara[3], posicion_cara[1]:posicion_cara[1]+posicion_cara[2]]
                             sonrisa = smileCascade.detectMultiScale(
                             cara_detectada,
@@ -230,8 +231,12 @@ def main(id_folder, model, umbral):
                                 cv2.putText(frame,"Cargando informacion...",(posicion_cara[0],posicion_cara[1]-30),font,1,(0,255,0), 2, cv2.LINE_AA)
                             else:
                                 cv2.putText(frame,"Sonrie, para ver mas info",(posicion_cara[0],posicion_cara[1]-30),font,1,(0,0,255), 2, cv2.LINE_AA)
+                        """
+                        else:
+                            cv2.putText(frame, "Acercate a la camara", (20,20), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
+                            cv2.rectangle(frame, (posicion_cara[0], posicion_cara[1]), (posicion_cara[2], posicion_cara[3]), (0, 255, 0), 4)
 
-                cv2.imshow("frame", frame)
+                cv2.imshow('Sistema de reconocimiento facial LCC', frame)
                 key = cv2.waitKey(1)
                 if key == ord("q"):
                     break

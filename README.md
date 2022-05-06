@@ -1,7 +1,7 @@
 # Reconocimiento facial
-Este proyecto utiliza tensorflow y opencv para hacer un reconocimiento facial
+El proyecto utiliza tensorflow y opencv para hacer reconocimiento facial
 
-La aplicación intenta buscar un rostro en la webcam. Posteriormente, se toma una captura de ese frame y se manda a una red neuronal profunda para intentar buscar coincidencia de alguna otra foto registrada en la carpeta "ids"
+La aplicación intenta buscar un rostro en la webcam. Posteriormente, se toma una captura de ese frame y se manda a una red neuronal profunda para intentar buscar coincidencia de alguna foto registrada en la carpeta "ids"
 
 ## ¿Qué librerias necesito para el funcionamiento?
 En el repositorio se deja un archivo requeriments.txt en donde están las librerías utilizadas
@@ -15,7 +15,7 @@ Estas se pueden instalar utilizando pip install -r requirements.txt
 Surgió debido a la inspiración de querer poner a practica los conocimientos adquiridos en la materia de Inteligencia Artificial y Reconocimiento de patrones en la licenciatura en Ciencias de la Computación. La idea es hacer un proyecto colaborativo, en donde los estudiantes puedan ir mejorando el sistema con el pasar de las generaciones para poder tener un sistema de reconocimiento más preciso y sostificado.
 
 ## ¿Qué modelo se utilizó?
-Para entrenar la inteligencia artificial se utilizo un modelo construido por google: [facenet](https://github.com/davidsandberg/facenet).
+Para entrenar la inteligencia artificial se utilizó un modelo construido por google: [facenet](https://github.com/davidsandberg/facenet).
 
 Para detectar una rostro se utilizó una red convolucional multitarea [MTCNN](https://kpzhang93.github.io/MTCNN_face_detection_alignment/index.html).
 
@@ -29,7 +29,7 @@ Para una mejor precisión, se utilizó una red convolucional ya entrenada con mi
 * Crear una carpeta llamada `ids` donde tendrá subcarpetas con los nombres de las personas que quieres reconocer.
 * Instalar todas las dependencias necesarias. 
 
-El programa debería de quedar así:
+La carpeta tiene que de quedar así:
 
 ```LCC_RECOGNITION
 ├── detect_and_align.py
