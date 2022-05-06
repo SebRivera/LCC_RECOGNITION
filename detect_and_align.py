@@ -152,7 +152,6 @@ def pad(total_boxes, w, h):
 
     return dy, edy, dx, edx, y, ey, x, ex, tmpw, tmph
 
-
 def bbreg(boundingbox, reg):
     # calibrate bounding boxes
     if reg.shape[1] == 1:
@@ -189,7 +188,6 @@ def layer(op):
         return self
 
     return layer_decorated
-
 
 class Network(object):
     def __init__(self, inputs, trainable=True):
@@ -399,15 +397,15 @@ def create_mtcnn(sess, model_path):
     with tf.variable_scope("pnet"):
         data = tf.placeholder(tf.float32, (None, None, None, 3), "input")
         pnet = PNet({"data": data})
-        pnet.load(os.path.join(model_path, "det1.npy"), sess)
+        pnet.load(os.path.join(model_path, "./npy/det1.npy"), sess)
     with tf.variable_scope("rnet"):
         data = tf.placeholder(tf.float32, (None, 24, 24, 3), "input")
         rnet = RNet({"data": data})
-        rnet.load(os.path.join(model_path, "det2.npy"), sess)
+        rnet.load(os.path.join(model_path, "./npy/det2.npy"), sess)
     with tf.variable_scope("onet"):
         data = tf.placeholder(tf.float32, (None, 48, 48, 3), "input")
         onet = ONet({"data": data})
-        onet.load(os.path.join(model_path, "det3.npy"), sess)
+        onet.load(os.path.join(model_path, "./npy/det3.npy"), sess)
 
     def pnet_fun(img):
         return sess.run(("pnet/conv4-2/BiasAdd:0", "pnet/prob1:0"), feed_dict={"pnet/input:0": img})
