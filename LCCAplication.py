@@ -1,25 +1,16 @@
 from tkinter import *
-from tkinter import messagebox, Canvas, simpledialog
+from tkinter import messagebox, Canvas
 from PIL import Image,ImageTk
-import multiprocessing
-
-from sklearn.metrics.pairwise import pairwise_distances
-from tensorflow.python.platform import gfile
 import tensorflow.compat.v1 as tf
 from tensorflow.keras.models import load_model
 import mediapipe as mp
 import numpy as np
 import detect_and_align as detectar_y_alinear
 import cv2
-import os
-import imutils
-
 import pymysql
-from datetime import datetime
-
 from DatosPersona import IdPersona, cargar_modelo
 
-class LCCAplication(Frame):
+class LCCRecognition(Frame):
     def __init__(self,root=None, model=None, id_folder = None, umbral=None):
         super().__init__(root)
         self.root=root
@@ -182,16 +173,15 @@ class LCCAplication(Frame):
             else:
                 self.BorrarVideo()
     
-    
     def Embeddings(self, face_patches):
         face_patches = np.stack(face_patches)
         feed_dict = {self.images_placeholder: face_patches, self.phase_train_placeholder: False}
         embs = self.sess.run(self.embeddings, feed_dict=feed_dict)
         return embs
-        
-        
+          
     def FrameDisponible(self,ret):
         return ret
+    
     def PersonaCercaParaReconocer(self,posicion_cara):
         if posicion_cara[2] > 300 and posicion_cara[3] > 300:
             return True
@@ -328,6 +318,7 @@ class LCCAplication(Frame):
         sql2 = 'INSERT INTO alumnos_lcc.registros(id_alumno) VALUES (%s);'
         cur.execute(sql2,(persona_reconocida))
         db.commit()
+    
     def Saludar(self):
         self.saludocompleto.set(
             "Hola {} {}\nLa ultima vez que te vi fue el\n{}".format(
@@ -341,4 +332,4 @@ if __name__ == "__main__":
     window = Tk()    
     window.geometry("1200x650")
     window.configure(bg = "#ffffff") 
-    LCCAplication(window,model='./model/20170512-110547.pb',id_folder=['./ids/'],umbral=1.09  )
+    LCCRecognition(window,model='./model/20170512-110547.pb',id_folder=['./ids/'],umbral=1.09  )
