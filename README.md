@@ -2,7 +2,7 @@
 El proyecto utiliza tensorflow y opencv para hacer reconocimiento facial
 
 La aplicación intenta buscar un rostro en la webcam. Posteriormente, se toma una captura de ese frame y se manda a una red neuronal profunda para intentar buscar coincidencia de alguna foto registrada en la carpeta "ids"
-![Alt Text](https://media.giphy.com/media/vFKqnCdLPNOKc/giphy.gif)
+![Alt Text](./presentacion/Media1.gif)
 
 
 ## ¿Qué librerias necesito para el funcionamiento?
