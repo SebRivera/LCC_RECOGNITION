@@ -1,3 +1,4 @@
+
 from tkinter import *
 from tkinter import messagebox, Canvas
 from PIL import Image,ImageTk
@@ -9,9 +10,23 @@ import detect_and_align as detectar_y_alinear
 import cv2
 import pymysql
 from DatosPersona import IdPersona, cargar_modelo
+ 
+ 
+from mlflow import log_metric, log_param, log_artifact
+
+## Documentation for a class.
+#
+#  More details.
 
 class LCCRecognition(Frame):
+    
     def __init__(self,root=None, model=None, id_folder = None, umbral=None):
+        """## Constructor por defecto de la clase.
+            @Parametro root Nombre de ventana de tkinter. Se debe de crear antes de hacer una instancia.
+            @Parametro model Nombre del modelo para cargar. Se debe de mandar el nombre, no la ruta.
+            @Parametro id_folder Ruta donde están localizado los nombres de las personas que serán reconocidas.
+            @Parametro umbral Parámetro para ajustar el nivel de detección de caras. Si da falsos positivos, es recomendable subirlo un poco
+            """
         super().__init__(root)
         self.root=root
         self.id_folder = id_folder      
@@ -24,10 +39,11 @@ class LCCRecognition(Frame):
         self.TiempoParaBorrarDato = 0
         
         self.CargarModeloReconocimientoFacial(id_folder)
-        self.CargarModeloReconoicimientoGestosManos()
+        self.CargarModeloReconocimientoGestosManos()
 
         #Variables para datos del alumno identificado
         self.creditos_totales = 383
+        
         self.lcc_matricula = IntVar()
         self.lcc_matricula_identificado = IntVar()
         self.lcc_nombre_identificado = StringVar()
@@ -73,8 +89,12 @@ class LCCRecognition(Frame):
         
         self.CargarComponentes(self.root)
         self.IniciarInterfaz()
-        
+    
     def CargarModeloReconocimientoFacial(self, id_folder):
+        """### Método de clase para cargar un modelo para el reconocimiento facial .
+        Se abre una sesión en tensorflow para asignar valores que serán procesados en su momento
+        @Parametro id_folder Carpeta donde se localizarán fotos de personas con su etiqueta.
+         """
         with tf.Graph().as_default():
                 self.sess = tf.Session()
                 self.mtcnn = detectar_y_alinear.create_mtcnn(self.sess, None)
@@ -84,7 +104,12 @@ class LCCRecognition(Frame):
                 self.phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
                 self.id_data = IdPersona(id_folder[0], self.mtcnn, self.sess, self.embeddings, self.images_placeholder, self.phase_train_placeholder, self.umbral)
     
-    def CargarModeloReconoicimientoGestosManos(self):
+    def CargarModeloReconocimientoGestosManos(self):
+        """### Método de clase para cargar un modelo para el reconocimiento gesticular de las manos .
+       Se cargará todo lo necesario para el reconocimiento de gestos de las manos
+       
+       ##Falta agregar más documentación
+        """
         self.mpHands = mp.solutions.hands
         self.hands = self.mpHands.Hands(max_num_hands=1, min_detection_confidence=0.7)
         self.mpDraw = mp.solutions.drawing_utils
@@ -94,6 +119,11 @@ class LCCRecognition(Frame):
         self.f.close()    
              
     def CargarComponentes(self,root):
+        """### Método de clase para cargar componentes para la interfaz de Tkinter .
+            @param root Ventana donde se cargarán los componentes       
+            
+            ##Falta agregar más documentación
+        """
         self.saludo = Label(root, textvariable = self.saludocompleto,
                        font = ("None", int(24.0)),
                        background="#ffffff").place(x=550,y=170)
@@ -113,11 +143,21 @@ class LCCRecognition(Frame):
             height = 490)    
     
     def Iniciar(self):
+        """### Método de clase para inciar el proceso de reconocimiento facial
+            NOTA: LA CÁMARA SE VA A PRENDER.
+            
+            ##Falta agregar más documentación
+        """
         global cap
         cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
         self.Visualizar()           
     
     def IniciarInterfaz(self):
+        """### Método de clase para inciar el proceso de reconocimiento facial
+            NOTA: LA CÁMARA SE VA A PRENDER.
+            
+            ##Falta agregar más documentación
+        """
         window.resizable(False, False)
         self.Iniciar()
         window.mainloop()
@@ -144,7 +184,7 @@ class LCCRecognition(Frame):
                     posicion_cara: Todas las caras reconocidas en el frame, será un arreglo de indice 4, donde estará su posición (x,y) y su tamaño
                     persona_reconocida: Es una etiqueta con el nombre de la persona reconocida
                     """
-                    for posicion_cara, _, persona_reconocida, _ in zip(
+                    for posicion_cara, _, persona_reconocida, distancia in zip(
                         cuadros_delimitadores, puntos_referencia, personas_reconocidas, distancias_personas_reconocidas
                     ):
                         #Comenzamos suponiendo que no hay ninguna persona
@@ -155,13 +195,14 @@ class LCCRecognition(Frame):
                                 if self.PersonaEnPosicion():
                                     gestoMano = self.DetectarMano(frame)
                                     #Se mostrará información de lo que hará el programa, ejemplo "Buscar información"
-                                    self.MensajeMano(frame,gestoMano,persona_reconocida,self.font)
+                                    self.MensajeMano(frame,gestoMano,persona_reconocida,self.font,distancia)
                             else:
                                 persona_reconocida = "Desconocido"
                                 self.NoHayPersona()
                             #Una vez reconocido el rostro, se va a mostrar en la cámara: Su nombre, Un cuadrado identificado al rostro y un pequeño mensaje
                             self.EncuadrarPersonaReconocida(frame,posicion_cara)
                             self.EtiquetarPersonaReconocida(frame,persona_reconocida,posicion_cara,self.font)
+                            #print("Hola %s! Acuraccy: %1.4f" % (persona_reconocida, distancia))
 
 
                         else:
@@ -246,18 +287,33 @@ class LCCRecognition(Frame):
                 className = self.classNames[classID]  
         return className
         
-    def MensajeMano(self,frame,className,persona_reconocida,font):
+    def MensajeMano(self,frame,className,persona_reconocida,font,distancia):
         msg = ""
+        feedback = 0
         if (className == 'thumbs up'):
             msg = "Feedback positivo!"
-            
+            feedback = 1
+
         if (className == 'live long'):
             msg = "Buscando tu informacion..."
             self.BuscarDatosAlumno(persona_reconocida)  
             self.TiempoParaBorrarDato = 0
-            
+            feedback = 1
+        
         if (className == 'thumbs down'):
-            msg ="Feedback negativo!"       
+            msg ="Feedback negativo!"
+            feedback = -1  
+            #log_metric("foo", -1)  
+        
+        """ MLFLOW ... QUEDA PENDIENTE POR QUE TODAVIA NO ENTIENDO COMO FUNCIONA"""
+        #log_param("matricula alumno", persona_reconocida)
+        #log_metric("accuracy", distancia)
+        #log_metric("feedback", feedback)
+             
+
+    # Log a metric; metrics can be updated throughout the run
+    
+
         cv2.putText(frame, msg, (80,400), font, 1, (39, 127, 255), 2, cv2.LINE_AA)
      
     def MostrarFrame(self, frame):
@@ -332,4 +388,6 @@ if __name__ == "__main__":
     window = Tk()    
     window.geometry("1200x650")
     window.configure(bg = "#ffffff") 
+
+
     LCCRecognition(window,model='./model/20170512-110547.pb',id_folder=['./ids/'],umbral=1.09  )
