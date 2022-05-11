@@ -3,7 +3,7 @@ from tkinter import *
 from tkinter import messagebox, Canvas
 from PIL import Image,ImageTk
 import tensorflow.compat.v1 as tf
-from tensorflow.keras.models import load_model
+import tensorflow.keras.models as tf_keras
 import mediapipe as mp
 import numpy as np
 import detect_and_align as detectar_y_alinear
@@ -37,7 +37,7 @@ class LCCRecognition(Frame):
         
         self.AlumnoEnCamara = False
         self.TiempoParaBorrarDato = 0
-        
+        self.SePuedeConsultar = True
         self.CargarModeloReconocimientoFacial(id_folder)
         self.CargarModeloReconocimientoGestosManos()
 
@@ -102,7 +102,13 @@ class LCCRecognition(Frame):
                 self.images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
                 self.embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
                 self.phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
-                self.id_data = IdPersona(id_folder[0], self.mtcnn, self.sess, self.embeddings, self.images_placeholder, self.phase_train_placeholder, self.umbral)
+                self.id_data = IdPersona(id_folder[0], 
+                                         self.mtcnn,
+                                         self.sess,
+                                         self.embeddings, 
+                                         self.images_placeholder, 
+                                         self.phase_train_placeholder,
+                                         self.umbral)
     
     def CargarModeloReconocimientoGestosManos(self):
         """### Método de clase para cargar un modelo para el reconocimiento gesticular de las manos .
@@ -113,7 +119,8 @@ class LCCRecognition(Frame):
         self.mpHands = mp.solutions.hands
         self.hands = self.mpHands.Hands(max_num_hands=1, min_detection_confidence=0.7)
         self.mpDraw = mp.solutions.drawing_utils
-        self.modelo_manos = load_model('mp_hand_gesture')
+        self.modelo_manos = tf_keras.load_model('mp_hand_gesture')
+        print(self.modelo_manos)
         self.f = open('gesture.names', 'r')
         self.classNames = self.f.read().split('\n')
         self.f.close()    
@@ -176,13 +183,23 @@ class LCCRecognition(Frame):
                     Cada palabra se mapea a un vector y los valores vectoriales se aprenden de una manera que se asemejan a los de un vector.
                     
                     An embedding is a low-dimensional translation of a high-dimensional vector
+                    
+                    Recibe datos que no son de bajo nivel, más complejos y se crea un embedding vector que te describe lo que estamos obteniendo
+                    Y la red neuronal se alimenta de esto. (Face Features)
+                    Face Embedding, presentar caracteristicas del mundo real, como la cara, la mano, el rostro, etc. representarlo en algún nivel de detalle.
                     """
+                    
+                    
+                    #FEATURE EXTRACTION DEL FRAME 
                     embs = self.Embeddings(face_patches)
+                    #print(embs)
                     personas_reconocidas, distancias_personas_reconocidas = self.id_data.find_matching_ids(embs)
                     
                     """
                     posicion_cara: Todas las caras reconocidas en el frame, será un arreglo de indice 4, donde estará su posición (x,y) y su tamaño
                     persona_reconocida: Es una etiqueta con el nombre de la persona reconocida
+                    
+                    cuadros_delimitadores se llama comunmente como bonding box
                     """
                     for posicion_cara, _, persona_reconocida, distancia in zip(
                         cuadros_delimitadores, puntos_referencia, personas_reconocidas, distancias_personas_reconocidas
@@ -194,7 +211,7 @@ class LCCRecognition(Frame):
                                 self.HayPersona()
                                 if self.PersonaEnPosicion():
                                     gestoMano = self.DetectarMano(frame)
-                                    #Se mostrará información de lo que hará el programa, ejemplo "Buscar información"
+                                    #Se mostrará información de lo que hará el programa, ejemplo "Buscar información, feedback negativo, postiivo,"
                                     self.MensajeMano(frame,gestoMano,persona_reconocida,self.font,distancia)
                             else:
                                 persona_reconocida = "Desconocido"
@@ -295,10 +312,12 @@ class LCCRecognition(Frame):
             feedback = 1
 
         if (className == 'live long'):
-            msg = "Buscando tu informacion..."
-            self.BuscarDatosAlumno(persona_reconocida)  
-            self.TiempoParaBorrarDato = 0
-            feedback = 1
+            if (self.SePuedeConsultar):
+                msg = "Buscando tu informacion..."
+                self.BuscarDatosAlumno(persona_reconocida)  
+                self.TiempoParaBorrarDato = 0
+                feedback = 1
+                self.SePuedeConsultar = False
         
         if (className == 'thumbs down'):
             msg ="Feedback negativo!"
@@ -334,6 +353,7 @@ class LCCRecognition(Frame):
         self.lcc_pp_identificado.set("")
         self.lcc_fecha_ultimoingreso.set("")
         self.saludocompleto.set("")
+        self.SePuedeConsultar = True
         return
     
     def BuscarDatosAlumno(self,persona_reconocida):

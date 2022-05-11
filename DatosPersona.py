@@ -34,23 +34,13 @@ class IdPersona:
         print("Encontré %d imagenes en total" % len(carpeta_imagenes))
         fotos_alineadas, id_image_paths = self.detect_id_faces(carpeta_imagenes)
         feed_dict = {images_placeholder: fotos_alineadas, phase_train_placeholder: False}
+        
+        #junta los embeddings de la carpeta de todas las fotos y del dataset descargado de internet
+        #el primer parametro (embedding) es el tensor de caracteristicas del modelo preentrenado
         self.embeddings = sess.run(embeddings, feed_dict=feed_dict)
 
         if len(id_image_paths) < 5:
             self.print_distance_table(id_image_paths)
-
-    def add_id(self, embedding, new_id, face_patch):
-        if self.embeddings is None:
-            self.embeddings = np.atleast_2d(embedding)
-        else:
-            self.embeddings = np.vstack([self.embeddings, embedding])
-        self.id_names.append(new_id)
-        id_folder = os.path.join(self.id_folder, new_id)
-        os.makedirs(id_folder, exist_ok=True)
-        filenames = [s.split(".")[0] for s in os.listdir(id_folder)]
-        numbered_filenames = [int(f) for f in filenames if f.isdigit()]
-        img_number = max(numbered_filenames) + 1 if numbered_filenames else 0
-        cv2.imwrite(os.path.join(id_folder, f"{img_number}.jpg"), face_patch)
 
     def detect_id_faces(self, carpeta_imagenes):
         fotos_alineadas = []
@@ -88,8 +78,16 @@ class IdPersona:
         if self.id_names:
             personas_reconocidas = []
             distancias_personas_reconocidas = []
+            
+            #embs son las caracteristicas del frame de la cámara
+            #self.embeddings son las caracteristicas de la carpeta donde están todas las ftoso
+            #Se saca la distancia de los embeddings del frame con el embeddings 
+            
+            #se compara la distancia minima entre todas las personas personas_reconocidas
+            #Y es la que mas se acerca a las personas reconocidas
             distance_matrix = pairwise_distances(embs, self.embeddings)
             for distance_row in distance_matrix:
+
                 min_index = np.argmin(distance_row)
                 if distance_row[min_index] < self.distancia_umbral:
                     personas_reconocidas.append(self.id_names[min_index])
@@ -102,6 +100,11 @@ class IdPersona:
             distancias_personas_reconocidas = [np.inf] * len(embs)
         return personas_reconocidas, distancias_personas_reconocidas
 
+    """
+    Se carga modelo ResNet V1 utilizando un conjunto de datos de entrenamiento MS-Celeb-1M
+    20170512-110547 (1.0) y se utiliza para detectar caras en una imagen. 
+    """
+    
 def cargar_modelo(model):
     model_exp = os.path.expanduser(model)
     if os.path.isfile(model_exp):
