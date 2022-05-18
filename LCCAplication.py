@@ -13,7 +13,10 @@ from DatosPersona import IdPersona, cargar_modelo
  
  
 from mlflow import log_metric, log_param, log_artifact
+import psutil
+import os
 
+l1, l2, l3 = psutil.getloadavg()
 ## Documentation for a class.
 #
 #  More details.
@@ -213,6 +216,9 @@ class LCCRecognition(Frame):
                                     gestoMano = self.DetectarMano(frame)
                                     #Se mostrará información de lo que hará el programa, ejemplo "Buscar información, feedback negativo, postiivo,"
                                     self.MensajeMano(frame,gestoMano,persona_reconocida,self.font,distancia)
+                                    log_metric(key="CPU USE", value=(l3/os.cpu_count()) * 100)
+                                    log_metric(key="precision", value=distancia)              
+
                             else:
                                 persona_reconocida = "Desconocido"
                                 self.NoHayPersona()
@@ -322,12 +328,11 @@ class LCCRecognition(Frame):
         if (className == 'thumbs down'):
             msg ="Feedback negativo!"
             feedback = -1  
-            #log_metric("foo", -1)  
         
         """ MLFLOW ... QUEDA PENDIENTE POR QUE TODAVIA NO ENTIENDO COMO FUNCIONA"""
         #log_param("matricula alumno", persona_reconocida)
-        #log_metric("accuracy", distancia)
-        #log_metric("feedback", feedback)
+        log_metric(key="feedback", value=feedback)
+
              
 
     # Log a metric; metrics can be updated throughout the run
