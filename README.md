@@ -1,3 +1,5 @@
+https://medium.com/@jesusmaing/lcc-recognition-7b2b77a8716f
+
 # Reconocimiento facial
 El proyecto utiliza tensorflow y opencv para hacer reconocimiento facial
 
@@ -29,14 +31,14 @@ Para una mejor precisión, se utilizó una red convolucional ya entrenada con mi
 
 * Se tiene que descargar el [modelo de facenet ya preentrenado](https://drive.google.com/file/d/0B5MzpY9kBtDVZ2RpVDYwWmxoSUk).
 * Crear una carpeta llamada `ids` donde tendrá subcarpetas con los nombres de las personas que quieres reconocer.
-* Instalar todas las dependencias necesarias. 
+* Instalar todas las dependencias necesarias.
+* Importar la base de datos de MYSQL
+* Modificar la base datos en el código LCCAplication.py, y ajustarlo a sus necesidades, se puede cambiar por sqlite
 
 La carpeta tiene que de quedar así:
 
 ```LCC_RECOGNITION
 ├── detect_and_align.py
-├── haarcascade_frontalface_default.xml
-├── haarcascade_smile.xml
 ├── main.py
 ├── README.md
 ├── requirements.txt
@@ -57,3 +59,4 @@ La carpeta tiene que de quedar así:
 │   │   ├── sebas.png
 │   │   ├── sebas2.png
 ```
+Habrá más archivos de los que aparecen en el árbol presentado anteriorme. Deben de ir en la raíz de la carpeta
